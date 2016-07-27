@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">KanjiTest</string>
+    <string name="action_settings">Settings</string>
+    <string name="question_kanji1">居酒屋</string>
+    <string name="question_kanji2">付き合い</string>
+    <string name="question_kanji3">いい点</string>
+    <string name="question_kanji4">第一</string>
+    <string name="question_kanji5">伺う</string>
+    <string name="true_button">I know</string>
+    <string name="false_button">Not</string>
+    <string name="correct_toast">Correct!</string>
+    <string name="incorrect_toast">Incorrect!</string>
+    <string name="next_button">Next</string>
+    <string name="prev_button">Prev</string>
+</resources>
