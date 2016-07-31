@@ -1,5 +1,7 @@
 package com.venchu.kanjitest;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -18,12 +20,12 @@ import org.w3c.dom.Text;
 public class TestActivity extends AppCompatActivity {
     private static final String TAG = "TestActivity";
     private static final String KEY_INDEX = "Index";
+    private static final int REQUEST_CODE_HINT = 0;
 
-    private Button mTrueButton;
-    private Button mFalseButton;
     private Button mNextButton;
     private Button mPrevButton;
     private TextView mQuestionTextView;
+    private Button mHintButton;
 
     private Question[] mQuestionBank = new Question[] {
             new Question(R.string.question_kanji1, true),
@@ -34,6 +36,7 @@ public class TestActivity extends AppCompatActivity {
     };
 
     private int mCurrentIndex = 0;
+    private boolean mIsHint;
 
     private void updateQuestion(){
         int question = mQuestionBank[mCurrentIndex].getTextResId();
@@ -45,46 +48,48 @@ public class TestActivity extends AppCompatActivity {
 
         int messageResId = 0;
 
-        if (userPressedTrue == answerIsTrue) {
-            messageResId = R.string.correct_toast;
+        if (mIsHint) {
+            messageResId = R.string.judgment_toast;
         } else {
-            messageResId = R.string.incorrect_toast;
+            if (userPressedTrue == answerIsTrue) {
+                messageResId = R.string.correct_toast;
+            } else {
+                messageResId = R.string.incorrect_toast;
+            }
+            Toast.makeText(this, messageResId, Toast.LENGTH_SHORT)
+                    .show();
         }
-        Toast.makeText(this, messageResId, Toast.LENGTH_SHORT)
-                .show();
     }
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
-        }
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_test);
 
-        mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
+        mHintButton = (Button) findViewById(R.id.hint_button);
+        mHintButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Запуск HintActivity
+                boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
+                Intent i = HintActivity.newIntent(TestActivity.this, answerIsTrue);
+                startActivityForResult(i, REQUEST_CODE_HINT);
+            }
+        });
+        if (savedInstanceState != null) {
+            mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
+        }
 
-        mTrueButton = (Button) findViewById(R.id.true_button);
-        mTrueButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                checkAnswer(true);
-            }
-        });
-        mFalseButton = (Button) findViewById(R.id.false_button);
-        mFalseButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                checkAnswer(false);
-            }
-        });
+
+        mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
 
         mNextButton = (Button) findViewById(R.id.next_button);
         mNextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
+                mIsHint = false;
                 updateQuestion();
             }
         });
@@ -114,7 +119,7 @@ public class TestActivity extends AppCompatActivity {
 
     }
 
-    /** @Override
+    @Override
     public void onStart() {
         super.onStart();
         Log.d(TAG, "onStart() called");
@@ -138,7 +143,7 @@ public class TestActivity extends AppCompatActivity {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy() called");
-    } */
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -152,6 +157,19 @@ public class TestActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode != Activity.RESULT_OK) {
+            return;
+        }
+        if (requestCode == REQUEST_CODE_HINT) {
+            if (data == null) {
+                return;
+            }
+            mIsHint = HintActivity.wasAnswerShown(data);
+        }
     }
 
 }
